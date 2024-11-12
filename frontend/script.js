@@ -1,7 +1,6 @@
 const apiUrl = 'http://127.0.0.1:5000/produtos';
 
 
-// Função para listar os produtos
 async function listarProdutos() {
     const response = await fetch(apiUrl);
     const produtos = await response.json();
@@ -14,17 +13,41 @@ async function listarProdutos() {
         row.innerHTML = `
             <td>${produto.id}</td>
             <td>${produto.nomeProduto}</td>
-            <td>${produto.preco}</td>
-            <td>${produto.quantidade}</td>
+            <td>R$ ${produto.preco}</td>
+            <td>
+                <button class="quantidade-btn" onclick="alterarQuantidade(${produto.id}, -1)">-</button>
+                <span id="quantidade-${produto.id}">${produto.quantidade}</span>
+                <button class="quantidade-btn" onclick="alterarQuantidade(${produto.id}, 1)">+</button>
+            </td>
             <td>
                 <button class="editar" onclick="editarProduto(${produto.id})">Editar</button>
                 <button class="deletar" onclick="deletarProduto(${produto.id})">Deletar</button>
-                
             </td>
         `;
+
         tabela.appendChild(row);
     });
 }
+
+async function alterarQuantidade(id, delta) {
+    const quantidadeElement = document.querySelector(`#quantidade-${id}`);
+    let quantidadeAtual = parseInt(quantidadeElement.innerText);
+
+    // Calcula a nova quantidade
+    const novaQuantidade = quantidadeAtual + delta;
+    if (novaQuantidade < 0) return; // Impede quantidades negativas
+
+    // Atualiza visualmente a quantidade
+    quantidadeElement.innerText = novaQuantidade;
+
+    // Envia a atualização para o back end
+    await fetch(`${apiUrl}/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ quantidade: novaQuantidade })
+    });
+}
+
 
 // Função para cadastrar um produto
 document.querySelector('#form-produto').addEventListener('submit', async (event) => {

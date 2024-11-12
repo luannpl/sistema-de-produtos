@@ -21,6 +21,8 @@ def criar_produto(nomeProduto, preco, quantidade):
         conexao.close()
 
 def listar_produtos():
+    conexao = None
+    cursor = None
     try:
         conexao = criar_conexao()
         cursor = conexao.cursor()
@@ -31,8 +33,11 @@ def listar_produtos():
     except Exception as erro:
         return {"error": str(erro)}, 500
     finally:
-        cursor.close()
-        conexao.close()
+        if cursor:
+            cursor.close()
+        if conexao:
+            conexao.close()
+
 
 def buscar_produto(id):
     try:
@@ -55,11 +60,23 @@ def atualizar_produto(id, nomeProduto, preco, quantidade):
     try:
         conexao = criar_conexao()
         cursor = conexao.cursor()
-        cursor.execute("""
+
+        # Recupera os valores atuais de nomeProduto e preco se não forem fornecidos
+        cursor.execute("SELECT nomeProduto, preco FROM produtos WHERE id = %s", (id,))
+        produto_atual = cursor.fetchone()
+        
+        if not produto_atual:
+            return {"error": "Produto não encontrado"}, 404
+        
+        nomeProduto = nomeProduto if nomeProduto else produto_atual[0]
+        preco = preco if preco else produto_atual[1]
+
+        cursor.execute(""" 
             UPDATE produtos
             SET nomeProduto = %s, preco = %s, quantidade = %s
             WHERE id = %s
         """, (nomeProduto, preco, quantidade, id))
+        
         conexao.commit()
         if cursor.rowcount > 0:
             return {"message": "Produto atualizado com sucesso"}, 200
@@ -71,6 +88,7 @@ def atualizar_produto(id, nomeProduto, preco, quantidade):
     finally:
         cursor.close()
         conexao.close()
+
 
 def deletar_produto(id):
     try:

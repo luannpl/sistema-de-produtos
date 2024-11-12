@@ -32,3 +32,18 @@ body {
     color: #fff;
     border: none;
 }
+
+.quantidade-btn {
+    background-color: #6c757d; 
+    color: #fff; 
+    border: none;
+    padding: 5px 10px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 4px;
+    margin: 0 3px; 
+}
+
+.quantidade-btn:hover {
+    background-color: #5a6268; 
+}
